@@ -12,6 +12,7 @@ type PrefixCompleterInterface interface {
 	Print(prefix string, level int, buf *bytes.Buffer)
 	Do(line []rune, pos int) (newLine [][]rune, length int)
 	GetName() []rune
+	GetHelp() []rune
 	GetChildren() []PrefixCompleterInterface
 	SetChildren(children []PrefixCompleterInterface)
 }
@@ -24,6 +25,7 @@ type DynamicPrefixCompleterInterface interface {
 
 type PrefixCompleter struct {
 	Name     []rune
+	Help     []rune
 	Dynamic  bool
 	Callback DynamicCompleteFunc
 	Children []PrefixCompleterInterface
@@ -43,7 +45,8 @@ func Print(p PrefixCompleterInterface, prefix string, level int, buf *bytes.Buff
 			buf.WriteString(strings.Repeat("─", (level*4)-2))
 			buf.WriteString(" ")
 		}
-		buf.WriteString(string(p.GetName()) + "\n")
+		buf.WriteString(string(p.GetName()) + "\t")
+		buf.WriteString(string(p.GetHelp()) + "\n")
 		level++
 	}
 	for _, ch := range p.GetChildren() {
@@ -63,6 +66,10 @@ func (p *PrefixCompleter) GetName() []rune {
 	return p.Name
 }
 
+func (p *PrefixCompleter) GetHelp() []rune {
+	return p.Help
+}
+
 func (p *PrefixCompleter) GetDynamicNames(line []rune) [][]rune {
 	var names = [][]rune{}
 	for _, name := range p.Callback(string(line)) {
@@ -80,13 +87,14 @@ func (p *PrefixCompleter) SetChildren(children []PrefixCompleterInterface) {
 }
 
 func NewPrefixCompleter(pc ...PrefixCompleterInterface) *PrefixCompleter {
-	return PcItem("", pc...)
+	return PcItem("", "", pc...)
 }
 
-func PcItem(name string, pc ...PrefixCompleterInterface) *PrefixCompleter {
+func PcItem(name string, help string, pc ...PrefixCompleterInterface) *PrefixCompleter {
 	name += " "
 	return &PrefixCompleter{
 		Name:     []rune(name),
+		Help:     []rune(help),
 		Dynamic:  false,
 		Children: pc,
 	}

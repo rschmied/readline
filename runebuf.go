@@ -35,7 +35,7 @@ type RuneBuffer struct {
 	sync.Mutex
 }
 
-func (r* RuneBuffer) pushKill(text []rune) {
+func (r *RuneBuffer) pushKill(text []rune) {
 	r.lastKill = append([]rune{}, text...)
 }
 
@@ -221,7 +221,7 @@ func (r *RuneBuffer) DeleteWord() {
 	}
 	for i := init + 1; i < len(r.buf); i++ {
 		if !IsWordBreak(r.buf[i]) && IsWordBreak(r.buf[i-1]) {
-			r.pushKill(r.buf[r.idx:i-1])
+			r.pushKill(r.buf[r.idx : i-1])
 			r.Refresh(func() {
 				r.buf = append(r.buf[:r.idx], r.buf[i-1:]...)
 			})
@@ -350,7 +350,7 @@ func (r *RuneBuffer) Yank() {
 		return
 	}
 	r.Refresh(func() {
-		buf := make([]rune, 0, len(r.buf) + len(r.lastKill))
+		buf := make([]rune, 0, len(r.buf)+len(r.lastKill))
 		buf = append(buf, r.buf[:r.idx]...)
 		buf = append(buf, r.lastKill...)
 		buf = append(buf, r.buf[r.idx:]...)
@@ -498,7 +498,10 @@ func (r *RuneBuffer) output() []byte {
 				buf.WriteRune(e)
 			}
 		}
-		if r.isInLineEdge() {
+		// the trailing backspace irritates unicon
+		// doesn't seem to hurt to completely ignore this
+		// rschmied 15 Nov 18
+		if false && r.isInLineEdge() {
 			buf.Write([]byte(" \b"))
 		}
 	}
